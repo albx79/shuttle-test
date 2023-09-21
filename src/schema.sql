@@ -1,6 +1,4 @@
-DROP TABLE IF EXISTS todos;
-
-CREATE TABLE todos (
+CREATE TABLE IF NOT EXISTS todos (
   id serial PRIMARY KEY,
   note TEXT NOT NULL
 );

@@ -1,33 +1,84 @@
-use actix_web::Result as AwResult;
+use actix_web::{post, Result as AwResult, web};
 use actix_web::{get, web::ServiceConfig};
+use actix_web::error::ErrorInternalServerError;
+use actix_web::web::{Data, Path};
 use maud::{html, Markup};
+use serde::Deserialize;
 use shuttle_actix_web::ShuttleActixWeb;
 use shuttle_runtime::CustomError;
-use sqlx::{Executor, PgPool};
+use sqlx::{Executor, FromRow, PgPool};
 
 #[get("/")]
-async fn hello_world() -> AwResult<Markup> {
-    Ok(html!{
+async fn root(conn: Data<PgPool>) -> AwResult<Markup> {
+    Ok(html! {
         html {
             head {
                 link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css";
-                script src="https://unpkg.com/htmx.org@1.9.5"{}
+                script src="https://unpkg.com/htmx.org@1.9.5" {}
             }
             body {
                 h1 { "Todo List" }
-                ul {
-                    li { "Item 1" }
-                    li { "Item 2" }
-                    li {
-                        form {
-                            input type="text" name="item";
-                            button type="submit" { "Submit" }
-                        }
-                    }
+                div #"notes" {
+                    (get_notes(conn).await?)
                 }
             }
         }
     })
+}
+
+#[get("/notes")]
+async fn notes(conn: Data<PgPool>) -> AwResult<Markup> {
+    get_notes(conn).await
+}
+
+async fn get_notes(conn: Data<PgPool>) -> AwResult<Markup> {
+    let all_notes: Vec<Note> = sqlx::query_as("SELECT id, note FROM todos").fetch_all(conn.get_ref())
+        .await.map_err(|e| ErrorInternalServerError(e))?;
+    Ok(html!{
+        table {
+            tbody {
+                @for note in &all_notes {
+                    tr {
+                        td { (note.note) }
+                        td { a hx-post={"/notes/"(note.id)"/delete"} hx-target="#notes" { "Delete" } }
+                    }
+                }
+            }
+        }
+        form hx-post="/notes" hx-target="#notes" {
+            input type="text" name="text";
+            button type="submit" { "Submit" }
+        }
+    })
+}
+
+#[post("/notes")]
+async fn create_note(conn: Data<PgPool>, web::Form(new_note): web::Form<NewNote>) -> AwResult<Markup> {
+    sqlx::query("INSERT INTO todos(note) VALUES ($1)")
+        .bind(new_note.text)
+        .execute(conn.get_ref())
+        .await.map_err(|e| ErrorInternalServerError(e))?;
+    get_notes(conn).await
+}
+
+#[post("/notes/{id}/delete")]
+async fn delete_note(conn: Data<PgPool>, id: Path<i32>) -> AwResult<Markup> {
+    sqlx::query("DELETE FROM todos WHERE id=$1")
+        .bind(id.into_inner())
+        .execute(conn.get_ref())
+        .await.map_err(|e| ErrorInternalServerError(e))?;
+    get_notes(conn).await
+}
+
+#[derive(Debug, FromRow)]
+struct Note {
+    id: i32,
+    note: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct NewNote {
+    text: String,
 }
 
 #[shuttle_runtime::main]
@@ -39,7 +90,13 @@ async fn actix_web(
         .map_err(CustomError::new)?;
 
     let config = move |cfg: &mut ServiceConfig| {
-        cfg.service(hello_world);
+        cfg
+            .app_data(Data::new(pool))
+            .service(root)
+            .service(notes)
+            .service(create_note)
+            .service(delete_note)
+        ;
     };
 
     Ok(config.into())

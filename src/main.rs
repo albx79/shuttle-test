@@ -14,6 +14,7 @@ async fn root(conn: Data<PgPool>) -> AwResult<Markup> {
         html {
             head {
                 link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css";
+                link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0";
                 script src="https://unpkg.com/htmx.org@1.9.5" {}
             }
             body {
@@ -40,13 +41,15 @@ async fn get_notes(conn: Data<PgPool>) -> AwResult<Markup> {
                 @for note in &all_notes {
                     tr {
                         td { (note.note) }
-                        td { a hx-post={"/notes/"(note.id)"/delete"} hx-target="#notes" { "Delete" } }
+                        td { a hx-post={"/notes/"(note.id)"/delete"} hx-target="#notes" {
+                            span ."material-symbols-outlined" { "delete" }
+                        } }
                     }
                 }
             }
         }
         form hx-post="/notes" hx-target="#notes" {
-            input type="text" name="text";
+            input type="text" name="text" autofocus;
             button type="submit" { "Submit" }
         }
     })

@@ -1,0 +1,108 @@
+<!-- character_sheet.html -->
+<!DOCTYPE html>
+<html lang="en" id="the-whole-page">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@latest"></script>
+    <title>FATE Character Sheet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .skill {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>FATE Character Sheet</h1>
+    <a href="?editable={{!editable}}">Toggle Edit</a>
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2">Character Details</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Name:</td>
+            <td contenteditable="{{ editable }}" hx-boost="true">{{ character.name }}</td>
+        </tr>
+        <tr>
+            <td>High Concept:</td>
+            <td contenteditable="{{ editable }}" hx-boost="true">{{ character.aspects[0] }}</td>
+        </tr>
+        <tr>
+            <td>Trouble:</td>
+            <td contenteditable="{{ editable }}" hx-boost="true">{{ character.aspects[1] }}</td>
+        </tr>
+        <tr>
+            <td>Aspects:</td>
+            <td>
+                <ul>
+                    {% for aspect in character.aspects[2..] %}
+                    <li contenteditable="{{ editable }}" hx-boost="true">{{ aspect }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <table>
+        <thead>
+        <tr>
+            <th>Skills</th>
+            <th>Rating</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for skill in character.skills %}
+        <tr>
+            <td class="skill" contenteditable="{{ editable }}" hx-boost="true">{{ skill.name }}</td>
+            <td contenteditable="{{ editable }}" hx-boost="true">{{ skill.rating }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <table>
+        <thead>
+        <tr>
+            <th>Stunts</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for stunt in character.stunts %}
+        <tr>
+            <td contenteditable="{{ editable }}" hx-boost="true">{{ stunt }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

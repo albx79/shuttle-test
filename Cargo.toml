@@ -4,11 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-actix-web = "4.3.1"
-shuttle-actix-web = "0.28"
-shuttle-runtime = "0.28"
-serde = "1.0.148"
-shuttle-shared-db = { version = "0.28", features = ["postgres"] }
-sqlx = { version = "0.7.1", features = ["runtime-tokio-native-tls", "postgres"] }
-tokio = "1.26.0"
-maud = { version = "0.25.0", features = ["actix-web"] }
+anyhow = "1.0.82"
+askama = "0.12.1"
+axum = { version = "0.7.5" }
+shuttle-axum = "0.44.0"
+shuttle-runtime = "0.44"
+tokio = { version = "1.37.0", features = ["full"] }
+tower = "0.4.13"
+tower-http = { version = "0.5.2", features = ["fs"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+serde = { version = "1.0.198", features = ["derive"] }
+edgedb-tokio = "0.5.0"
+edgedb-protocol = "0.6.0"
+edgedb-derive = "0.5.1"
+uuid = { version = "1.8.0", features = ["v4"] }
+

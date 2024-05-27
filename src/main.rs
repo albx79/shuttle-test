@@ -19,13 +19,6 @@ async fn main() -> shuttle_axum::ShuttleAxum {
     println!("EDGEDB {:?};", std::env::var("EDGEDB_SECRET_KEY"));
     let client: EdgeClient = edgedb_tokio::create_client().await
         .map_err(|e| shuttle_runtime::Error::Database(e.to_string()))?;
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "with_axum_htmx_askama=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
 
     info!("initializing router...");
     let fate_router = Router::new()
